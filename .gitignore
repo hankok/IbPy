@@ -6,3 +6,4 @@ release-*
 ._*
 .DS_Store
 *.bak
+.idea/*
