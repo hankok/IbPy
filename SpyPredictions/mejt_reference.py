@@ -37,18 +37,18 @@ def historical_data_handler(msg):
         lows = arrayList[:, 4].astype(np.float)
         highest = max(highs)
         lowest = min(lows)
-        num_slots = (highest - lowest) / 0.001
-        bm = BitMap(num_slots)
-        print bm.tostring()
+        num_slots = int((highest - lowest) * 1000)
+        bm = BitMap.fromstring('1'*num_slots)
+        #print bm.tostring()
 
         gap_exits = None
         for i in range(0, len(arrayList)):
-            for i in range((lows[i] - lowest) * 1000, (highs[i] - lowest) * 1000 + 1):
-                bm.set(i)
+            for i in range(int((lows[i] - lowest) * 1000), int((highs[i] - lowest) * 1000)):
+                bm.flip(i)
 
-        if bm.count() < len(bm.tostring()):
+        if bm.count() > 0:
             gap_exits = True
-            print("INVALIDATED: Gap exits before MEJT AM sequence, no prediction given!")
+            print("INVALIDATED: Gap exits before MEJT AM sequence, no prediction given!" + str(newDataList[bm.nonzero()[0]]))
 
         # 1. Determine the MEJT reference bar
         am_o = newDataList[-3][2]
@@ -74,7 +74,7 @@ def historical_data_handler(msg):
 
         if (am2_l < am_l and am2_h > am_h and am2_l < am1_l and am2_h > am1_h):
             reference_line = 2
-        print("Reference line is AM+" + reference_line + "  Time: " + newDataList[reference_line - 3][1])
+        print("Reference line is AM+" + str(reference_line) + "  Time(Local): " + str(newDataList[reference_line - 3][1]))
 
         # 2. Determine the Trend up/down?
 
@@ -100,7 +100,7 @@ for i in new_symbolinput:
     qqq.m_exchange = 'SMART'
     qqq.m_currency = 'USD'
     # https://www.interactivebrokers.com/en/software/api/apiguide/java/reqhistoricaldata.htm
-    con.reqHistoricalData(symbol_id, qqq, '20160204 09:20:00 CST', '23100 S', '5 mins', 'TRADES', 1,
+    con.reqHistoricalData(symbol_id, qqq, '20160112 09:20:00 CST', '23100 S', '5 mins', 'TRADES', 1,
                           2)  # 900 S for 3 bars
     symbol_id = symbol_id + 1
     sleep(10)
